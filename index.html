@@ -9,12 +9,13 @@
 (function($){
 	$.fn.slideswitch = function(options) {
 		var options = $.extend({
-			width: 300,
-			height: 100,
-			frameBorder: 10,
-			sliderWidth: 150,
+			width: 280,
+			height: 80,
+			sliderButtonWidth: 150,
+			frameBorder: 0,
 			frameClass: "slideswitch-frame",
 			frameCSS: {
+				padding: "10px",
 				background: "url(slideswitch-frame.png) no-repeat"
 			},
 			sliderClass: "slideswitch-slider",
@@ -22,61 +23,58 @@
 				background: "url(slideswitch-slider.png) no-repeat"
 			}
 		}, options);
-		$(this).each(function() {
-			var body = $(this);
-			body.css("position", "relative");
 
-			var slider = {
-				position: 0,
-				getBackgroundPosition: function() {
-					return (this.position + options.sliderWidth - options.width + options.frameBorder * 2) + "px 0";
-				},
-				updatePosition: function(position) {
-					this.position = position || 0;
-					this.element.css("backgroundPosition", this.getBackgroundPosition());
-				}
-			}
-			slider.element = $("<div/>")
+		$(this).each(function() {
+			var placeholder = $(this)
+				.css({position: "relative"});
+			var sliderWrapper = $("<div/>")
+				.css({width: "100%", height: "100%"});
+			var frame = $("<div/>")
+				.addClass(options.frameClass)
+				.css(options.frameCSS)
+				.css({position: "absolute"})
+				.width(options.width)
+				.height(options.height)
+				.append(sliderWrapper)
+				.appendTo(placeholder);
+			var slider = $("<div/>")
 				.addClass(options.sliderClass)
 				.css(options.sliderCSS)
 				.css({
 					position: "absolute",
-					left: options.frameBorder + "px",
-					top: options.frameBorder + "px"
+					left: frame.css("paddingLeft"),
+					top: frame.css("paddingTop")
 				})
-				.width(options.width - options.frameBorder * 2)
-				.height(options.height - options.frameBorder * 2)
-				.appendTo(body);
-			slider.updatePosition();
+				.width(frame.width())
+				.height(frame.height())
+				.prependTo(placeholder);
 
-			var frame = {
-			};
-			frame.element = $("<div/>")
-				.addClass(options.frameClass)
-				.css(options.frameCSS)
-				.css("position", "absolute")
-				.width(options.width).height(options.height)
-				.appendTo(body);
+			var sliderPosition = 0;
+			function updateSliderPosition(position) {
+				sliderPosition = position || 0;
+				slider.css({backgroundPosition: (sliderPosition + options.sliderButtonWidth - slider.width()) + "px 0"});
+			}
+			updateSliderPosition();
 
 			var onmove = function(event) {
-				var p = (event.clientX - options.frameBorder) + event.data.initialPosition;
-				p = Math.min(Math.max(p, 0), options.width - options.sliderWidth - options.frameBorder * 2);
-				slider.updatePosition(p);
+				var position = (event.clientX - sliderWrapper.offset().left) + event.data.initialPosition;
+				position = Math.min(Math.max(position, 0), slider.width() - options.sliderButtonWidth);
+				updateSliderPosition(position);
 			};
-			frame.element.bind("mousedown", function(event) {
-				var x = event.clientX - options.frameBorder;
-				if(x > slider.position && x < slider.position + options.sliderWidth) {
-					frame.element.bind("mousemove", {initialPosition: slider.position - x}, onmove);
+			frame.bind("mousedown", function(event) {
+				var x = event.clientX - sliderWrapper.offset().left;
+				if(x > sliderPosition && x < sliderPosition + options.sliderButtonWidth) {
+					frame.bind("mousemove", {initialPosition: sliderPosition - x}, onmove);
 				}
 				event.preventDefault();
 			})
 			$(document).bind("mouseup", function(event) {
-				frame.element.unbind("mousemove", onmove);
-				var x = event.clientX - options.frameBorder;
-				if(slider.position > (options.width - options.sliderWidth - options.frameBorder * 2) / 2) {
-					slider.updatePosition(options.width - options.sliderWidth - options.frameBorder * 2);
+				frame.unbind("mousemove", onmove);
+				var w = slider.width() - options.sliderButtonWidth;
+				if(sliderPosition >  w / 2) {
+					updateSliderPosition(w);
 				} else {
-					slider.updatePosition(0);
+					updateSliderPosition(0);
 				}
 			});
 		});
@@ -88,6 +86,11 @@
 })(jQuery);
 </script>
 <style type="text/css">
+.slideswitch {
+	position: absolute;
+	left: 100px;
+	top: 100px;
+}
 </style>
 <title>switch</title>
 </head>
