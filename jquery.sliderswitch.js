@@ -106,6 +106,7 @@
 				var slideswitch = {
 					frame: frame,
 					slider: slider,
+					sliderWrapper: sliderWrapper,
 					on: function(b, animate) {
 						if(typeof b == "undefined") {
 							return options.leftSideOn ? (sliderPosition == 0) : (sliderPosition != 0);
@@ -129,21 +130,21 @@
 
 				var captureStatus = 0;
 				var onmove = function(event) {
-					var position = (event.clientX - sliderWrapper.offset().left) + event.data.initialPosition;
+					var position = (event.clientX - $(this).offset().left) + event.data.initialPosition;
 					position = Math.min(Math.max(position, 0), slider.width() - options.sliderButtonWidth);
 					updateSliderPosition(position);
 					captureStatus = 2;
 				};
-				frame.bind("mousedown", function(event) {
-					var x = event.clientX - sliderWrapper.offset().left;
+				sliderWrapper.bind("mousedown", function(event) {
+					var x = event.clientX - $(this).offset().left;
 					if(x > sliderPosition && x < sliderPosition + options.sliderButtonWidth) {
-						frame.bind("mousemove", {initialPosition: sliderPosition - x}, onmove);
+						sliderWrapper.bind("mousemove", {initialPosition: sliderPosition - x}, onmove);
 						event.preventDefault();
 					}
 					captureStatus = 1;
 				})
 				$(document).bind("mouseup", function(event) {
-					frame.unbind("mousemove", onmove);
+					sliderWrapper.unbind("mousemove", onmove);
 					if(captureStatus > 1) {
 						var x = (slider.width() - options.sliderButtonWidth) / 2;
 						if(options.leftSideOn) {
