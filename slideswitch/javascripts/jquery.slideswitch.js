@@ -62,6 +62,8 @@
 		return $(this);
 	};
 
+	var script = $("script[src$='jquery.js']")[0];
+	var images_path = script ? script.src.replace(/jquery.js/, '../images/') : 'images';
 	$.fn.slideswitch = function(options) {
 		var slideswitch = $($(this)[0]).data("slideswitch");
 		if(slideswitch && typeof options == "boolean") {
@@ -80,11 +82,11 @@
 					padding: "10px",
 					width: "280px",
 					height: "80px",
-					background: "url(slideswitch.png) no-repeat 0 0"
+					background: "url(" + images_path + "slideswitch.png) no-repeat 0 0"
 				},
 				sliderClass: "slideswitch-slider",
 				sliderCSS: {
-					background: "url(slideswitch.png) no-repeat -300px 0"
+					background: "url(" + images_path + "slideswitch.png) no-repeat -300px 0"
 				},
 				sliderButtonWidth: 150,
 				animate: {
