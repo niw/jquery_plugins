@@ -62,11 +62,11 @@
 					frame: frame,
 					slider: slider,
 					on: function() {
-						return sliderPosition != 0;
+						return options.leftSideOn ? (sliderPosition == 0) : (sliderPosition != 0);
 					},
 					toggle: function(b) {
 						var x = slider.width() - options.sliderButtonWidth;
-						if((typeof b == "boolean" && b) || !this.on()) {
+						if(typeof b == "boolean" ? b : !this.on()) {
 							x = (options.leftSideOn) ? 0 : x;
 							placeholder.trigger("on", [this]);
 						} else {
@@ -80,6 +80,7 @@
 
 				slideswitch.toggle(options.on);
 
+				var capture = false;
 				var onmove = function(event) {
 					var position = (event.clientX - sliderWrapper.offset().left) + event.data.initialPosition;
 					position = Math.min(Math.max(position, 0), slider.width() - options.sliderButtonWidth);
@@ -89,16 +90,23 @@
 					var x = event.clientX - sliderWrapper.offset().left;
 					if(x > sliderPosition && x < sliderPosition + options.sliderButtonWidth) {
 						frame.bind("mousemove", {initialPosition: sliderPosition - x}, onmove);
+						capture = true;
+						event.preventDefault();
 					}
-					event.preventDefault();
 				})
+				frame.bind("click", function(event) {
+					slideswitch.toggle();
+				});
 				$(document).bind("mouseup", function(event) {
-					frame.unbind("mousemove", onmove);
-					var x = (slider.width() - options.sliderButtonWidth) / 2;
-					if(options.leftSideOn) {
-						slideswitch.toggle(sliderPosition < x);
-					} else {
-						slideswitch.toggle(sliderPosition > x);
+					if(capture) {
+						frame.unbind("mousemove", onmove);
+						var x = (slider.width() - options.sliderButtonWidth) / 2;
+						if(options.leftSideOn) {
+							slideswitch.toggle(sliderPosition < x);
+						} else {
+							slideswitch.toggle(sliderPosition > x);
+						}
+						capture = false;
 					}
 				});
 			});
