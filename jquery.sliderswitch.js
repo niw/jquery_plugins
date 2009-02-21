@@ -22,9 +22,45 @@
 				nowPosX[0] = ((fx.end[0] - fx.start[0]) * fx.pos) + fx.start[0] + fx.unit[0];
 				nowPosX[1] = ((fx.end[1] - fx.start[1]) * fx.pos) + fx.start[1] + fx.unit[1];           
 				fx.elem.style.backgroundPosition = nowPosX[0]+' '+nowPosX[1];
+				$(fx.elem).fixBackground();
 			}
 		});
 	}
+
+	$.fn.fixBackground = function() {
+		if($.browser.msie) {
+			$(this).each(function() {
+				var e = $(this);
+				var m = e.css("backgroundImage").match(/url\(([^\)]+)\)/);
+				var p = $.map(e.css("backgroundPosition").split(" "), function(a) {
+					return parseFloat(a);
+				});
+				var bg = e.data("fixBackground");
+				if(!bg) {
+					if(!m) {
+						return;
+					}
+					bg = $("<div/>");
+					e.data("fixBackground", bg)
+						.prepend(bg)
+						.css({
+							backgroundImage: "none",
+							overflow: "hidden",
+							position: (e.css("position") == "default") ? "relative" : e.css("position")
+						});
+				}
+				bg.css({	
+					position: "absolute",
+					width: e.innerWidth() + "px",
+					height: e.innerHeight() + "px",
+					left: p[0] + "px",
+					top: p[1] + "px",
+					filter: m ? "progid:DXImageTransform.Microsoft.AlphaImageLoader(enabled='true', src='" + m[1] + "')" : bg.css("filter")
+				});
+			});
+		}
+		return $(this);
+	};
 
 	$.fn.slideswitch = function(options) {
 		var slideswitch = $($(this)[0]).data("slideswitch");
@@ -64,20 +100,23 @@
 				var frame = $("<div/>")
 					.addClass(options.frameClass)
 					.css(options.frameCSS)
-					.css({position: "absolute"})
+					.css({position: "absolute", overflow: "hidden"})
 					.append(sliderWrapper)
-					.appendTo(placeholder);
+					.appendTo(placeholder)
+					.fixBackground();
 				var slider = $("<div/>")
 					.addClass(options.sliderClass)
 					.css(options.sliderCSS)
 					.css({
 						position: "absolute",
+						overflow: "hidden",
 						left: frame.css("paddingLeft"),
 						top: frame.css("paddingTop")
 					})
 					.width(frame.width())
 					.height(frame.height())
-					.prependTo(placeholder);
+					.prependTo(placeholder)
+					.fixBackground();
 
 				var sliderPosition, sliderAnimating = false;
 				var initialSliderPosition = $.map(slider.css("backgroundPosition").split(" "), function(a) {
@@ -100,6 +139,7 @@
 						sliderAnimating = true;
 					} else {
 						slider.css({backgroundPosition: backgroundPosition});
+						slider.fixBackground();
 					}
 				}
 
