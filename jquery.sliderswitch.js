@@ -53,7 +53,6 @@
 				var initialSliderPosition = $.map(slider.css("backgroundPosition").split(" "), function(a) {
 					return parseFloat(a);
 				});
-				console.debug(initialSliderPosition);
 				function updateSliderPosition(position, animate) {
 					sliderPosition = position || 0;
 					slider.css({backgroundPosition: initialSliderPosition[0] + (sliderPosition + options.sliderButtonWidth - slider.width()) + "px " + initialSliderPosition[1] + "px"});
