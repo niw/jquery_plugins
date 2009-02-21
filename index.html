@@ -1,0 +1,99 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<link href="styles.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript">
+(function($){
+	$.fn.slideswitch = function(options) {
+		var options = $.extend({
+			width: 300,
+			height: 100,
+			frameBorder: 10,
+			sliderWidth: 150,
+			frameClass: "slideswitch-frame",
+			frameCSS: {
+				background: "url(slideswitch-frame.png) no-repeat"
+			},
+			sliderClass: "slideswitch-slider",
+			sliderCSS: {
+				background: "url(slideswitch-slider.png) no-repeat"
+			}
+		}, options);
+		$(this).each(function() {
+			var body = $(this);
+			body.css("position", "relative");
+
+			var slider = {
+				position: 0,
+				getBackgroundPosition: function() {
+					return (this.position + options.sliderWidth - options.width + options.frameBorder * 2) + "px 0";
+				},
+				updatePosition: function(position) {
+					this.position = position || 0;
+					this.element.css("backgroundPosition", this.getBackgroundPosition());
+				}
+			}
+			slider.element = $("<div/>")
+				.addClass(options.sliderClass)
+				.css(options.sliderCSS)
+				.css({
+					position: "absolute",
+					left: options.frameBorder + "px",
+					top: options.frameBorder + "px"
+				})
+				.width(options.width - options.frameBorder * 2)
+				.height(options.height - options.frameBorder * 2)
+				.appendTo(body);
+			slider.updatePosition();
+
+			var frame = {
+			};
+			frame.element = $("<div/>")
+				.addClass(options.frameClass)
+				.css(options.frameCSS)
+				.css("position", "absolute")
+				.width(options.width).height(options.height)
+				.appendTo(body);
+
+			var onmove = function(event) {
+				var p = (event.clientX - options.frameBorder) + event.data.initialPosition;
+				p = Math.min(Math.max(p, 0), options.width - options.sliderWidth - options.frameBorder * 2);
+				slider.updatePosition(p);
+			};
+			frame.element.bind("mousedown", function(event) {
+				var x = event.clientX - options.frameBorder;
+				if(x > slider.position && x < slider.position + options.sliderWidth) {
+					frame.element.bind("mousemove", {initialPosition: slider.position - x}, onmove);
+				}
+				event.preventDefault();
+			})
+			$(document).bind("mouseup", function(event) {
+				frame.element.unbind("mousemove", onmove);
+				var x = event.clientX - options.frameBorder;
+				if(slider.position > (options.width - options.sliderWidth - options.frameBorder * 2) / 2) {
+					slider.updatePosition(options.width - options.sliderWidth - options.frameBorder * 2);
+				} else {
+					slider.updatePosition(0);
+				}
+			});
+		});
+		return $(this);
+	};
+	$(function() {
+		$(".slideswitch").slideswitch();
+	});
+})(jQuery);
+</script>
+<style type="text/css">
+</style>
+<title>switch</title>
+</head>
+
+<body>
+<div class="slideswitch"></div>
+</body>
+
+</html>
