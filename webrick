@@ -1,0 +1,21 @@
+#!/usr/bin/env ruby
+require 'webrick'
+
+class EchoServlet < WEBrick::HTTPServlet::AbstractServlet
+  def do_GET(req, res)
+    res.content_type = "text/plain";
+    res.body = req.query.map{|k, v| "#{k} => #{v}\n"}.join.to_s
+  end
+end
+
+server = WEBrick::HTTPServer.new(
+  :Port => 3000,
+  :BindAddress => '0.0.0.0',
+  :DocumentRoot => File.expand_path(File.dirname(__FILE__))
+)
+server.mount("/test", EchoServlet);
+
+trap('INT') do
+  server.shutdown
+end
+server.start
