@@ -184,7 +184,7 @@
 						event.preventDefault();
 					}
 					captureStatus = 1;
-				})
+				});
 				$(document).bind("mouseup", function(event) {
 					sliderWrapper.unbind("mousemove", onmove);
 					if(captureStatus > 1) {
