@@ -158,18 +158,12 @@
 							return on;
 						}
 
-						var x = slider.width() - options.sliderButtonWidth;
-						if(b) {
-							x = (options.leftSideOn) ? 0 : x;
-							this.on = true;
-							placeholder.trigger("on", [this]);
-						} else {
-							x = (options.leftSideOn) ? x : 0;
-							this.on = false;
-							placeholder.trigger("off", [this]);
-						}
-						updateSliderPosition(x, animate);
-						return !!b;
+						b = !!b;
+						this.on = b;
+						placeholder.trigger(b ? "on" : "off", [this]);
+						var position = (b ^ options.leftSideOn) ? (slider.width() - options.sliderButtonWidth) : 0;
+						updateSliderPosition(position, animate);
+						return b;
 					}
 				};
 				placeholder.data("slideswitch", slideswitch);
@@ -185,14 +179,15 @@
 					}
 					var x = ($.browser.iphone ? event.originalEvent.touches[0].screenX : event.pageX) - $(this).offset().left;
 					var delta = x - capture.x;
-						$("#debug").text(delta);
 					capture.x = x;
 					capture.sigma_delta += Math.abs(delta);
 					var position = Math.min(Math.max(sliderPosition + delta, 0), slider.width() - options.sliderButtonWidth)
 					updateSliderPosition(position);
 				};
 				sliderWrapper.bind($.browser.iphone ? "touchstart" : "mousedown", function(event) {
-					$("#debug").text("");
+					if(sliderAnimating) {
+						return;
+					}
 					var x = ($.browser.iphone ? event.originalEvent.touches[0].screenX : event.pageX) - $(this).offset().left;
 					capture = {x: x, time: (new Date()).getTime(), sigma_delta: 0};
 					if(x > sliderPosition && x < sliderPosition + options.sliderButtonWidth) {
@@ -203,14 +198,9 @@
 				$(document).bind($.browser.iphone ? "touchend" : "mouseup", function(event) {
 					sliderWrapper.unbind($.browser.iphone ? "touchmove" : "mousemove", onmove);
 					if(capture) {
-						$("#debug").text(capture.sigma_delta);
 						if(capture.sigma_delta > 10) {
 							var x = (slider.width() - options.sliderButtonWidth) / 2;
-							if(options.leftSideOn) {
-								slideswitch.toggle(sliderPosition < x);
-							} else {
-								slideswitch.toggle(sliderPosition > x);
-							}
+							slideswitch.toggle((sliderPosition > x) ^ options.leftSideOn);
 							capture = false;
 						} else {
 							slideswitch.toggle(!slideswitch.on, true);
