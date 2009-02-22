@@ -1,0 +1,47 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link href="stylesheets/styles.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="javascripts/jquery.js"></script>
+<script type="text/javascript" src="javascripts/jquery.throbber.js"></script>
+<script type="text/javascript">
+(function($){
+	$(function() {
+		// Enable throbber for any ajax requests on jQuery
+		// The throbber will show if the request takes more than 1 sec.
+		var throbber_timer_id;
+		var throbber_option = {};
+		$(document)
+			.bind("ajaxSend", function(request) {
+				if(throbber_timer_id) {
+					clearTimeout(throbber_timer_id);
+				}
+				throbber_timer_id = setTimeout(function() {
+					$.throbber(true, throbber_option);
+				}, 1000);
+			})
+			.bind("ajaxComplete", function(request) {
+				clearTimeout(throbber_timer_id);
+				$.throbber(false, throbber_option);
+			});
+
+		// Turn throbber ON/OFF by hand
+		$("#button").click(function() {
+			if($(this).val() == "on") {
+				$.throbber(true);
+				$(this).val("off");
+			} else {
+				$.throbber(false);
+				$(this).val("on");
+			}
+		});
+	});
+})(jQuery);
+</script>
+<title>throbber demo</title>
+</head>
+<body>
+	<input id="button" type="button" value="on" />
+</body>
+</html>
