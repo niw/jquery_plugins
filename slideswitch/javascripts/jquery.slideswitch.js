@@ -27,6 +27,8 @@
 		});
 	}
 
+	$.browser.iphone = /Apple.*Mobile.*Safari/.test(navigator.userAgent);
+
 	$.fn.fixBackground = function() {
 		if($.browser.msie) {
 			$(this).each(function() {
@@ -67,11 +69,11 @@
 	$.fn.slideswitch = function(options) {
 		var slideswitch = $($(this)[0]).data("slideswitch");
 		if(slideswitch && typeof options == "boolean") {
-			slideswitch.on(options);
+			slideswitch.toggle(options);
 			return $(this);
 		} else {
 			if(slideswitch) {
-				return slideswitch.on();
+				return slideswitch.on;
 			}
 
 			var options = $.extend({
@@ -120,7 +122,8 @@
 					.prependTo(placeholder)
 					.fixBackground();
 
-				var sliderPosition, sliderAnimating = false;
+				var sliderPosition;
+				var sliderAnimating = false;
 				var initialSliderPosition = $.map(slider.css("backgroundPosition").split(" "), function(a) {
 					return parseFloat(a);
 				});
@@ -149,17 +152,20 @@
 					frame: frame,
 					slider: slider,
 					sliderWrapper: sliderWrapper,
-					on: function(b, animate) {
+					on: false,
+					toggle: function(b, animate) {
 						if(typeof b == "undefined") {
-							return options.leftSideOn ? (sliderPosition == 0) : (sliderPosition != 0);
+							return on;
 						}
 
 						var x = slider.width() - options.sliderButtonWidth;
 						if(b) {
 							x = (options.leftSideOn) ? 0 : x;
+							this.on = true;
 							placeholder.trigger("on", [this]);
 						} else {
 							x = (options.leftSideOn) ? x : 0;
+							this.on = false;
 							placeholder.trigger("off", [this]);
 						}
 						updateSliderPosition(x, animate);
@@ -168,37 +174,49 @@
 				};
 				placeholder.data("slideswitch", slideswitch);
 
-				slideswitch.on(options.on);
+				slideswitch.toggle(options.on);
 
-				var captureStatus = 0;
+				var capture;
 				var onmove = function(event) {
-					var position = (event.clientX - $(this).offset().left) + event.data.initialPosition;
-					position = Math.min(Math.max(position, 0), slider.width() - options.sliderButtonWidth);
+					if ($.browser.iphone && ((new Date()).getTime() - capture.time < 70)) {
+						return;
+					} else {
+						capture.time = (new Date()).getTime();
+					}
+					var x = ($.browser.iphone ? event.originalEvent.touches[0].screenX : event.pageX) - $(this).offset().left;
+					var delta = x - capture.x;
+						$("#debug").text(delta);
+					capture.x = x;
+					capture.sigma_delta += Math.abs(delta);
+					var position = Math.min(Math.max(sliderPosition + delta, 0), slider.width() - options.sliderButtonWidth)
 					updateSliderPosition(position);
-					captureStatus = 2;
 				};
-				sliderWrapper.bind("mousedown", function(event) {
-					var x = event.clientX - $(this).offset().left;
+				sliderWrapper.bind($.browser.iphone ? "touchstart" : "mousedown", function(event) {
+					$("#debug").text("");
+					var x = ($.browser.iphone ? event.originalEvent.touches[0].screenX : event.pageX) - $(this).offset().left;
+					capture = {x: x, time: (new Date()).getTime(), sigma_delta: 0};
 					if(x > sliderPosition && x < sliderPosition + options.sliderButtonWidth) {
-						sliderWrapper.bind("mousemove", {initialPosition: sliderPosition - x}, onmove);
+						sliderWrapper.bind($.browser.iphone ? "touchmove" : "mousemove", onmove);
 						event.preventDefault();
 					}
-					captureStatus = 1;
 				});
-				$(document).bind("mouseup", function(event) {
-					sliderWrapper.unbind("mousemove", onmove);
-					if(captureStatus > 1) {
-						var x = (slider.width() - options.sliderButtonWidth) / 2;
-						if(options.leftSideOn) {
-							slideswitch.on(sliderPosition < x);
+				$(document).bind($.browser.iphone ? "touchend" : "mouseup", function(event) {
+					sliderWrapper.unbind($.browser.iphone ? "touchmove" : "mousemove", onmove);
+					if(capture) {
+						$("#debug").text(capture.sigma_delta);
+						if(capture.sigma_delta > 10) {
+							var x = (slider.width() - options.sliderButtonWidth) / 2;
+							if(options.leftSideOn) {
+								slideswitch.toggle(sliderPosition < x);
+							} else {
+								slideswitch.toggle(sliderPosition > x);
+							}
+							capture = false;
 						} else {
-							slideswitch.on(sliderPosition > x);
+							slideswitch.toggle(!slideswitch.on, true);
 						}
-						capture = false;
-					} else if(captureStatus > 0) {
-						slideswitch.on(!slideswitch.on(), true);
 					}
-					captureStatus = 0;
+					capture = undefined;
 				});
 			});
 
