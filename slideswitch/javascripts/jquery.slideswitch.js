@@ -10,7 +10,7 @@
 		}
 		$.extend($.fx.step, {
 			backgroundPosition: function(fx) {
-				if (fx.state === 0 && typeof fx.end == 'string') {
+				if (typeof fx.end == 'string') {
 					var start = $.curCSS(fx.elem, 'backgroundPosition');
 					start = toArray(start);
 					fx.start = [start[0], start[2]];
@@ -124,27 +124,28 @@
 
 				var sliderPosition;
 				var sliderAnimating = false;
-				var initialSliderPosition = $.map(slider.css("backgroundPosition").split(" "), function(a) {
+				var initialBackgroundPosition = $.map(slider.css("backgroundPosition").split(" "), function(a) {
 					return parseFloat(a);
 				});
 				function updateSliderPosition(position, animate) {
 					if(sliderAnimating) {
 						return false;
 					}
-					sliderPosition = position || 0;
-					backgroundPosition = $.map([sliderPosition + options.sliderButtonWidth - slider.width(), 0], function(a, i) {
-						return (a + initialSliderPosition[i]) + "px"
+					backgroundPosition = $.map([position + options.sliderButtonWidth - slider.width(), 0], function(a, i) {
+						return (a + initialBackgroundPosition[i]) + "px"
 					}).join(" ");
 					if(animate) {
 						slider.animate({backgroundPosition: "(" + backgroundPosition + ")"}, $.extend({
 							complete: function() {
 								sliderAnimating = false;
+								sliderPosition = position;
 							}
 						}, options.animate));
 						sliderAnimating = true;
 					} else {
 						slider.css({backgroundPosition: backgroundPosition});
 						slider.fixBackground();
+						sliderPosition = position;
 					}
 				}
 
@@ -179,10 +180,12 @@
 					}
 					var x = ($.browser.iphone ? event.originalEvent.touches[0].screenX : event.pageX) - $(this).offset().left;
 					var delta = x - capture.x;
-					capture.x = x;
-					capture.sigma_delta += Math.abs(delta);
-					var position = Math.min(Math.max(sliderPosition + delta, 0), slider.width() - options.sliderButtonWidth)
-					updateSliderPosition(position);
+					if(delta) {
+						capture.x = x;
+						capture.sigma_delta += Math.abs(delta);
+						var position = Math.min(Math.max(sliderPosition + delta, 0), slider.width() - options.sliderButtonWidth)
+						updateSliderPosition(position);
+					}
 				};
 				sliderWrapper.bind($.browser.iphone ? "touchstart" : "mousedown", function(event) {
 					if(sliderAnimating) {
@@ -198,7 +201,7 @@
 				$(document).bind($.browser.iphone ? "touchend" : "mouseup", function(event) {
 					sliderWrapper.unbind($.browser.iphone ? "touchmove" : "mousemove", onmove);
 					if(capture) {
-						if(capture.sigma_delta > 10) {
+						if(capture.sigma_delta > 5) {
 							var x = (slider.width() - options.sliderButtonWidth) / 2;
 							slideswitch.toggle((sliderPosition > x) ^ options.leftSideOn);
 							capture = false;
