@@ -204,7 +204,7 @@
 					if(capture) {
 						if(capture.sigma_delta > 5) {
 							var x = (slider.width() - options.sliderButtonWidth) / 2;
-							slideswitch.toggle((sliderPosition > x) ^ options.leftSideOn);
+							slideswitch.toggle((sliderPosition > x) ^ options.leftSideOn, true);
 							capture = false;
 						} else {
 							slideswitch.toggle(!slideswitch.on, true);
