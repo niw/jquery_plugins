@@ -1,3 +1,4 @@
+/* jquery.slideswitch.js @VERSION Copyright (c) 2009 Yoshimasa Niwa */
 (function($){
 	// jquery.backgroundPosition.js, Alexander Farkas, v.1.02
 	if(typeof $.fx.step.backgroundPosition == "undefined") {
