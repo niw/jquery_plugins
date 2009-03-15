@@ -184,7 +184,7 @@
 					if(delta) {
 						capture.x = x;
 						capture.sigma_delta += Math.abs(delta);
-						var position = Math.min(Math.max(sliderPosition + delta, 0), slider.width() - options.sliderButtonWidth)
+						var position = Math.min(Math.max(sliderPosition + delta, 0), slider.width() - options.sliderButtonWidth);
 						updateSliderPosition(position);
 					}
 				};
