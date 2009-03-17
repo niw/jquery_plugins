@@ -67,10 +67,10 @@
 
 	var script = $("script[src$='jquery.js']")[0];
 	var images_path = script ? script.src.replace(/jquery.js/, '../images/') : 'images';
-	$.fn.slideswitch = function(options) {
+	$.fn.slideswitch = function(options, animate) {
 		var slideswitch = $($(this)[0]).data("slideswitch");
 		if(slideswitch && typeof options == "boolean") {
-			slideswitch.toggle(options);
+			slideswitch.toggle(options, animate);
 			return $(this);
 		} else {
 			if(slideswitch) {
